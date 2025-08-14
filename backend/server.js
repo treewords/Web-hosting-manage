@@ -57,6 +57,9 @@ app.get('/api', (req, res) => {
 // Rute de autentificare
 app.use('/api/auth', require('./routes/auth'));
 
+// Rute pentru domenii
+app.use('/api/domains', require('./routes/domains'));
+
 // O rută protejată de test
 const authMiddleware = require('./middleware/authMiddleware');
 const User = require('./models/User');

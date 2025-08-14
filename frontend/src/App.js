@@ -47,7 +47,8 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route element={<DashboardLayout />}>
                   <Route path="/" element={<DashboardPage />} />
-                  {/* Aici se vor adăuga alte rute de dashboard, ex: /domains, /databases etc. */}
+                  <Route path="/domains" element={<DomainsPage />} />
+                  {/* Aici se vor adăuga alte rute de dashboard, ex: /databases etc. */}
               </Route>
             </Route>
 
