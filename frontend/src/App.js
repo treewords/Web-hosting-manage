@@ -7,6 +7,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import DomainsPage from './pages/DomainsPage';
+import MysqlPage from './pages/MysqlPage';
 
 // Importăm componentele de layout și de rutare protejată
 import PrivateRoute from './components/PrivateRoute';
@@ -48,6 +50,7 @@ function App() {
               <Route element={<DashboardLayout />}>
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/domains" element={<DomainsPage />} />
+                  <Route path="/mysql" element={<MysqlPage />} />
                   {/* Aici se vor adăuga alte rute de dashboard, ex: /databases etc. */}
               </Route>
             </Route>

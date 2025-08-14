@@ -60,6 +60,9 @@ app.use('/api/auth', require('./routes/auth'));
 // Rute pentru domenii
 app.use('/api/domains', require('./routes/domains'));
 
+// Rute pentru baze de date MySQL
+app.use('/api/mysql', require('./routes/mysql'));
+
 // O rută protejată de test
 const authMiddleware = require('./middleware/authMiddleware');
 const User = require('./models/User');

@@ -20,3 +20,13 @@ CREATE TABLE IF NOT EXISTS `domains` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   UNIQUE KEY `unique_domain_per_user` (`user_id`, `domain_name`)
 ) ENGINE=InnoDB;
+
+-- Create the 'mysql_databases' table for tracking
+CREATE TABLE IF NOT EXISTS `mysql_databases` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `db_name` VARCHAR(255) NOT NULL UNIQUE,
+  `db_user` VARCHAR(255) NOT NULL UNIQUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
