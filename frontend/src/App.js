@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import DomainsPage from './pages/DomainsPage';
 import MysqlPage from './pages/MysqlPage';
+import FileManagerPage from './pages/FileManagerPage';
 
 // Importăm componentele de layout și de rutare protejată
 import PrivateRoute from './components/PrivateRoute';
@@ -51,6 +52,7 @@ function App() {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/domains" element={<DomainsPage />} />
                   <Route path="/mysql" element={<MysqlPage />} />
+                  <Route path="/files" element={<FileManagerPage />} />
                   {/* Aici se vor adăuga alte rute de dashboard, ex: /databases etc. */}
               </Route>
             </Route>

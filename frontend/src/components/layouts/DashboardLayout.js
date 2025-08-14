@@ -7,11 +7,13 @@ import LanguageIcon from '@mui/icons-material/Language';
 const drawerWidth = 240;
 
 import StorageIcon from '@mui/icons-material/Storage';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 const navItems = [
     { text: 'Dashboard', path: '/', icon: <HomeIcon /> },
     { text: 'Domains', path: '/domains', icon: <LanguageIcon /> },
     { text: 'MySQL', path: '/mysql', icon: <StorageIcon /> },
+    { text: 'File Manager', path: '/files', icon: <FolderOpenIcon /> },
 ];
 
 const DashboardLayout = () => {

@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
@@ -33,6 +35,10 @@ router.post('/register', async (req, res) => {
 
     // Creăm utilizatorul
     const newUser = await User.create(email, hashedPassword, userRole);
+
+    // Create a home directory for the new user
+    const userHomeDir = path.join('/var/www/hosts', `user_${newUser.id}`);
+    await fs.mkdir(userHomeDir, { recursive: true });
 
     res.status(201).json({
       msg: 'User registered successfully',
