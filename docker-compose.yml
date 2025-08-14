@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: webpanel-backend
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock # Necesar pentru viitoarele integrări
+    networks:
+      - webpanel-net
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: webpanel-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443" # Pregătit pentru SSL
+    networks:
+      - webpanel-net
+    depends_on:
+      - backend
+
+  db:
+    image: mariadb:10.6
+    container_name: webpanel-db
+    restart: always
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - webpanel-net
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: webpanel-redis
+    restart: always
+    networks:
+      - webpanel-net
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  webpanel-net:
+    driver: bridge
