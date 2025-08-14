@@ -66,6 +66,9 @@ app.use('/api/mysql', require('./routes/mysql'));
 // Rute pentru file manager
 app.use('/api/files', require('./routes/files'));
 
+// Rute pentru SSL
+app.use('/api/ssl', require('./routes/ssl'));
+
 // O rută protejată de test
 const authMiddleware = require('./middleware/authMiddleware');
 const User = require('./models/User');

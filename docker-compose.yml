@@ -13,6 +13,7 @@ services:
     volumes:
       - ./backend:/app
       - /var/run/docker.sock:/var/run/docker.sock # Necesar pentru viitoarele integrări
+      - acme_challenges:/var/www/acme_challenges
     networks:
       - webpanel-net
     depends_on:
@@ -28,6 +29,8 @@ services:
     ports:
       - "80:80"
       - "443:443" # Pregătit pentru SSL
+    volumes:
+      - acme_challenges:/usr/share/nginx/html/.well-known/acme-challenge
     networks:
       - webpanel-net
     depends_on:
@@ -58,6 +61,8 @@ services:
 
 volumes:
   db_data:
+    driver: local
+  acme_challenges:
     driver: local
 
 networks:
