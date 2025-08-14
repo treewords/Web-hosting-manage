@@ -1,12 +1,27 @@
 import React from 'react';
-import { Typography, Container, Paper, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Typography, Container, Paper, Box, Button } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <Container maxWidth="lg">
-        <Typography variant="h4" sx={{ mb: 5 }}>
-            Hi, Welcome back 👋
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+            <Typography variant="h4">
+                Hi, Welcome back {user ? `, ${user.email}` : ''}! 👋
+            </Typography>
+            <Button variant="contained" color="error" onClick={handleLogout}>
+                Logout
+            </Button>
+        </Box>
         <Paper sx={{ p: 3 }}>
             <Box>
                 <Typography variant="h6">
