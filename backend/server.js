@@ -72,6 +72,9 @@ app.use('/api/ssl', require('./routes/ssl'));
 // Rute pentru statistici sistem
 app.use('/api/system', require('./routes/system'));
 
+// Rute pentru admin
+app.use('/api/admin', require('./routes/admin'));
+
 // O rută protejată de test
 const authMiddleware = require('./middleware/authMiddleware');
 const User = require('./models/User');

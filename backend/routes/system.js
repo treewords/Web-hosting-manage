@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const si = require('systeminformation');
 const authMiddleware = require('../middleware/authMiddleware');
+const checkRole = require('../middleware/roleMiddleware');
 
 // @route   GET /api/system/stats
 // @desc    Get current system resource stats
-// @access  Private
-router.get('/stats', authMiddleware, async (req, res) => {
+// @access  Private (Admin/Reseller only)
+router.get('/stats', [authMiddleware, checkRole(['admin', 'reseller'])], async (req, res) => {
     try {
         // We can gather multiple stats in parallel
         const [cpu, mem, fs] = await Promise.all([
