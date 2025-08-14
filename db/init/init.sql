@@ -30,3 +30,29 @@ CREATE TABLE IF NOT EXISTS `mysql_databases` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Tables for simulated Postfix/Dovecot mail server
+CREATE TABLE IF NOT EXISTS `mail_domains` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `domain` VARCHAR(255) NOT NULL UNIQUE,
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `user_id` INT NOT NULL,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `mail_users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL, -- Will store hashed password
+  `domain_id` INT NOT NULL,
+  FOREIGN KEY (`domain_id`) REFERENCES `mail_domains`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `mail_aliases` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `source` VARCHAR(255) NOT NULL,
+  `destination` VARCHAR(255) NOT NULL,
+  `domain_id` INT NOT NULL,
+  FOREIGN KEY (`domain_id`) REFERENCES `mail_domains`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `source_destination_unique` (`source`, `destination`)
+) ENGINE=InnoDB;
