@@ -4,7 +4,11 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(255) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
   `role` ENUM('client', 'reseller', 'admin') NOT NULL DEFAULT 'client',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `reset_token` VARCHAR(255) NULL,
+  `reset_token_expires` DATETIME NULL,
+  `two_factor_secret` VARCHAR(255) NULL,
+  `two_factor_enabled` TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
 
 -- You can add a default admin user for testing if you want

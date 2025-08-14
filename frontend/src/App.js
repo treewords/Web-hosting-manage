@@ -12,6 +12,9 @@ import MysqlPage from './pages/MysqlPage';
 import FileManagerPage from './pages/FileManagerPage';
 import AdminPage from './pages/AdminPage';
 import EmailPage from './pages/EmailPage';
+import RequestPasswordResetPage from './pages/RequestPasswordResetPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import SecurityPage from './pages/SecurityPage';
 
 // Importăm componentele de layout și de rutare protejată
 import PrivateRoute from './components/PrivateRoute';
@@ -47,6 +50,8 @@ function App() {
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+            <Route path="/request-password-reset" element={<RequestPasswordResetPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             </Route>
 
             {/* Rute private cu layout de dashboard */}
@@ -57,6 +62,7 @@ function App() {
                   <Route path="/email" element={<EmailPage />} />
                   <Route path="/mysql" element={<MysqlPage />} />
                   <Route path="/files" element={<FileManagerPage />} />
+                  <Route path="/security" element={<SecurityPage />} />
 
                   {/* Admin Routes */}
                   <Route element={<AdminRoute />}>

@@ -1,20 +1,16 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
-// Creăm contextul
 const AuthContext = createContext(null);
 
-// Hook custom pentru a folosi contextul mai ușor
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-// Axios instance
 const api = axios.create({
-  baseURL: '/api', // Folosim proxy-ul Nginx
+  baseURL: '/api',
 });
 
-// Funcție pentru a seta token-ul în headerele axios
 const setAuthToken = token => {
     if (token) {
         api.defaults.headers.common['x-auth-token'] = token;
@@ -23,56 +19,61 @@ const setAuthToken = token => {
     }
 };
 
-
-// Provider-ul care va încapsula aplicația
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const finaliseLogin = async (newToken) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    setAuthToken(newToken);
+    try {
+        const userRes = await api.get('/profile');
+        setUser(userRes.data);
+        setIsAuthenticated(true);
+    } catch (err) {
+        // Handle error if profile can't be fetched after login
+        logout();
+    }
+  };
+
   useEffect(() => {
     const loadUser = async () => {
         const storedToken = localStorage.getItem('token');
         if (storedToken) {
-            setAuthToken(storedToken);
-            try {
-                const res = await api.get('/profile');
-                setUser(res.data);
-                setIsAuthenticated(true);
-                setToken(storedToken);
-            } catch (err) {
-                // Token invalid sau expirat
-                localStorage.removeItem('token');
-                setIsAuthenticated(false);
-            }
+            await finaliseLogin(storedToken);
         }
         setLoading(false);
     };
-
     loadUser();
   }, []);
 
   const register = async (email, password) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
-    const body = JSON.stringify({ email, password });
-    const res = await api.post('/auth/register', body, config);
+    const res = await api.post('/auth/register', { email, password });
     return res;
   };
 
   const login = async (email, password) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
-    const body = JSON.stringify({ email, password });
-    const res = await api.post('/auth/login', body, config);
+    const res = await api.post('/auth/login', { email, password });
+    if (res.data.token) {
+        // No 2FA, login is complete
+        await finaliseLogin(res.data.token);
+        return res.data;
+    }
+    // 2FA is required, return the challenge
+    return res.data;
+  };
 
-    localStorage.setItem('token', res.data.token);
-    setToken(res.data.token);
-    setAuthToken(res.data.token);
-    setIsAuthenticated(true);
-
-    // Încărcăm datele utilizatorului după login
-    const userRes = await api.get('/profile');
-    setUser(userRes.data);
+  const loginWith2fa = async (challengeToken, totpToken) => {
+      const res = await api.post('/auth/login/2fa', { challengeToken, totpToken });
+      if (res.data.token) {
+          await finaliseLogin(res.data.token);
+          return res.data;
+      }
+      // Should not happen if API is correct, but handle it
+      throw new Error("2FA login failed to return a token.");
   };
 
   const logout = () => {
@@ -90,12 +91,13 @@ export const AuthProvider = ({ children }) => {
     user,
     register,
     login,
+    loginWith2fa,
     logout,
   };
 
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
-    </AuthContext.Provider>
+    </Auth-Provider>
   );
 };

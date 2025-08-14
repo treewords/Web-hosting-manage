@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -14,7 +14,12 @@ import {
   Alert,
   Breadcrumbs,
   Link,
-  TextField
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
@@ -30,6 +35,13 @@ const FileManagerPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // State for dialogs
+  const [openNewFolderDialog, setOpenNewFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+
+  // Ref for file input
+  const fileInputRef = useRef(null);
+
   const { token } = useAuth();
   const api = axios.create({
       baseURL: '/api',
@@ -41,7 +53,6 @@ const FileManagerPage = () => {
       setLoading(true);
       setError('');
       const res = await api.get(`/files?path=${encodeURIComponent(path)}`);
-      // Sort folders first, then files
       const sortedContents = res.data.sort((a, b) => {
         if (a.isDirectory && !b.isDirectory) return -1;
         if (!a.isDirectory && b.isDirectory) return 1;
@@ -65,15 +76,21 @@ const FileManagerPage = () => {
     fetchContents(newPath);
   };
 
+  const handleDelete = async (itemPath) => {
+      if (window.confirm(`Are you sure you want to delete "${itemPath}"?`)) {
+          try {
+              await api.delete(`/files?path=${encodeURIComponent(itemPath)}`);
+              // Refresh contents
+              fetchContents(currentPath);
+          } catch (err) {
+              setError(`Failed to delete ${itemPath}.`);
+              console.error(err);
+          }
+      }
+  };
+
   const handleDownload = (filePath) => {
-    // This is tricky without a form submit, we can use a link
     const downloadUrl = `/api/files/download?path=${encodeURIComponent(filePath)}`;
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    // We need to add the auth token for the download link if it's not cookie-based
-    // For simplicity, we'll assume the browser sends cookies if the API is on the same domain.
-    // A more robust solution might need a temporary token in the URL.
-    // Or, fetch the blob and create a URL:
     api.get(downloadUrl, { responseType: 'blob' }).then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -86,94 +103,108 @@ const FileManagerPage = () => {
     }).catch(e => console.error("Download error", e));
   };
 
-  // Render breadcrumbs
+  const handleCreateFolder = async () => {
+      if (!newFolderName) return;
+      try {
+          const newFolderPath = `${currentPath}/${newFolderName}`.replace('//', '/');
+          await api.post('/files/create-folder', { newFolderPath });
+          setOpenNewFolderDialog(false);
+          setNewFolderName('');
+          fetchContents(currentPath); // Refresh
+      } catch (err) {
+          console.error(err);
+          // You could set a dialog-specific error state here
+      }
+  };
+
+  const handleUploadClick = () => {
+      fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (event) => {
+      const files = event.target.files;
+      if (files.length === 0) return;
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+          formData.append('files', files[i]);
+      }
+      formData.append('path', currentPath);
+
+      try {
+          // You might want to add a loading indicator for uploads
+          await api.post('/files/upload', formData, {
+              headers: {
+                  'Content-Type': 'multipart/form-data'
+              }
+          });
+          fetchContents(currentPath); // Refresh
+      } catch (err) {
+          setError('File upload failed.');
+          console.error(err);
+      }
+  };
+
   const renderBreadcrumbs = () => {
     const pathParts = currentPath.split('/').filter(p => p);
     let pathAccumulator = '';
 
     return (
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
-            <Link component="button" onClick={() => handlePathChange('/')} underline="hover" color="inherit">
-                Home
-            </Link>
+            <Link component="button" onClick={() => handlePathChange('/')} underline="hover" color="inherit">Home</Link>
             {pathParts.map((part, index) => {
                 pathAccumulator += `/${part}`;
-                const linkPath = pathAccumulator; // Capture path at this iteration
-                return (
-                    <Link
-                        key={index}
-                        component="button"
-                        onClick={() => handlePathChange(linkPath)}
-                        underline="hover"
-                        color="inherit"
-                    >
-                        {part}
-                    </Link>
-                );
+                const linkPath = pathAccumulator;
+                return (<Link key={index} component="button" onClick={() => handlePathChange(linkPath)} underline="hover" color="inherit">{part}</Link>);
             })}
         </Breadcrumbs>
     );
   };
 
-
   return (
     <Container maxWidth="lg">
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        File Manager
-      </Typography>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        {renderBreadcrumbs()}
-      </Paper>
-
-      {/* Action buttons */}
+      <Typography variant="h4" sx={{ mb: 2 }}>File Manager</Typography>
+      <Paper sx={{ p: 2, mb: 2 }}>{renderBreadcrumbs()}</Paper>
       <Box sx={{ mb: 2 }}>
-        <Button variant="contained">Upload File</Button>
-        <Button sx={{ ml: 1 }} variant="outlined">New Folder</Button>
+        <Button variant="contained" onClick={handleUploadClick}>Upload File</Button>
+        <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+        <Button sx={{ ml: 1 }} variant="outlined" onClick={() => setOpenNewFolderDialog(true)}>New Folder</Button>
       </Box>
-
-      {/* Contents List */}
       <Paper sx={{ p: 1 }}>
         {error && <Alert severity="error">{error}</Alert>}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}><CircularProgress /></Box>
         ) : (
           <List>
-            {contents.map((item) => (
-              <ListItem
-                key={item.name}
-                secondaryAction={
+            {contents.map((item) => {
+              const itemPath = `${currentPath}/${item.name}`.replace('//', '/');
+              return (
+              <ListItem key={item.name} secondaryAction={
                   <>
-                    {!item.isDirectory && (
-                      <IconButton edge="end" aria-label="download" onClick={() => handleDownload(`${currentPath}/${item.name}`.replace('//', '/'))}>
-                        <DownloadIcon />
-                      </IconButton>
-                    )}
-                    <IconButton edge="end" aria-label="delete">
-                      <DeleteIcon />
-                    </IconButton>
+                    {!item.isDirectory && (<IconButton edge="end" onClick={() => handleDownload(itemPath)}><DownloadIcon /></IconButton>)}
+                    <IconButton edge="end" onClick={() => handleDelete(itemPath)}><DeleteIcon /></IconButton>
                   </>
                 }
               >
-                <ListItemIcon>
-                  {item.isDirectory ? <FolderIcon /> : <InsertDriveFileIcon />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    item.isDirectory ? (
-                      <Link component="button" onClick={() => handlePathChange(`${currentPath}/${item.name}`.replace('//', '/'))} underline="hover">
-                        {item.name}
-                      </Link>
-                    ) : (
-                      item.name
-                    )
-                  }
-                  secondary={`${item.size} bytes`}
-                />
+                <ListItemIcon>{item.isDirectory ? <FolderIcon /> : <InsertDriveFileIcon />}</ListItemIcon>
+                <ListItemText primary={item.isDirectory ? (<Link component="button" onClick={() => handlePathChange(itemPath)} underline="hover">{item.name}</Link>) : (item.name)} secondary={`${item.size} bytes`} />
               </ListItem>
-            ))}
+            )})}
           </List>
         )}
       </Paper>
+
+      {/* New Folder Dialog */}
+      <Dialog open={openNewFolderDialog} onClose={() => setOpenNewFolderDialog(false)}>
+        <DialogTitle>Create New Folder</DialogTitle>
+        <DialogContent><DialogContentText>Enter the name for the new folder.</DialogContentText>
+          <TextField autoFocus margin="dense" id="name" label="Folder Name" type="text" fullWidth variant="standard" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenNewFolderDialog(false)}>Cancel</Button>
+          <Button onClick={handleCreateFolder}>Create</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -78,6 +78,9 @@ app.use('/api/admin', require('./routes/admin'));
 // Rute pentru email
 app.use('/api/email', require('./routes/email'));
 
+// Rute pentru securitate (2FA)
+app.use('/api/security', require('./routes/security'));
+
 // O rută protejată de test
 const authMiddleware = require('./middleware/authMiddleware');
 const User = require('./models/User');

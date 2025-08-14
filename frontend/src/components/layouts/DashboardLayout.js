@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 const drawerWidth = 240;
 
 import EmailIcon from '@mui/icons-material/Email';
+import SecurityIcon from '@mui/icons-material/Security';
 
 const allNavItems = [
     { text: 'Dashboard', path: '/', icon: <HomeIcon />, roles: ['client', 'reseller', 'admin'] },
@@ -18,6 +19,7 @@ const allNavItems = [
     { text: 'Email Accounts', path: '/email', icon: <EmailIcon />, roles: ['client', 'reseller', 'admin'] },
     { text: 'MySQL', path: '/mysql', icon: <StorageIcon />, roles: ['client', 'reseller', 'admin'] },
     { text: 'File Manager', path: '/files', icon: <FolderOpenIcon />, roles: ['client', 'reseller', 'admin'] },
+    { text: 'Security', path: '/security', icon: <SecurityIcon />, roles: ['client', 'reseller', 'admin'] },
     { text: 'Admin', path: '/admin', icon: <AdminPanelSettingsIcon />, roles: ['admin'] },
 ];
 

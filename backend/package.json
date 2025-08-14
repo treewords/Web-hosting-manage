@@ -27,7 +27,9 @@
     "redis": "^4.6.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.2",
-    "systeminformation": "^5.21.22"
+    "systeminformation": "^5.21.22",
+    "speakeasy": "^2.0.0",
+    "qrcode": "^1.5.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
